@@ -56,7 +56,7 @@ public:
 	std::pair<char, Token> next();
 	std::pair<char, Token> peek();
 	void invalidToken(const std::string &expectedToken, const std::pair<char, Token> &token) const;
-	Expression parseExpression(const float minBidingPower = 1.0f);
+	Expression parseExpression(const float minBidingPower = 0.0f);
 	std::pair<float, float> infixBindingPower(char op);
 };
 

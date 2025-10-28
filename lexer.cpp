@@ -23,8 +23,8 @@ Lexer::Lexer(std::string &input) {
 }
 
 void Lexer::printfTokens() const {
-	for (const auto &token : tokens) {
-		std::cout << '(' << static_cast<char>(token.first) << ", " << static_cast<char>(token.second) << ")\n";
+	for (auto token = std::rbegin(tokens); token != std::rend(tokens); token++) {
+		std::cout << '(' << static_cast<char>((*token).first) << ", " << static_cast<char>((*token).second) << ")\n";
 	}
 }
 
@@ -54,27 +54,26 @@ Expression Lexer::parseExpression(const float minBindingPower) {
 	}
 	
 	while(true) {
-		Expression op;
+		char op;
 		token = peek();
 		if (token.second == Token::Eof) {
 			return lhs;
 		} else if (token.second == Token::Op) {
-			op.Atom = token.first;
+			op = token.first;
 		} else {
 			invalidToken("Op", token);
 		}
-		next();
 		
-		auto bindingPowers = infixBindingPower(op.Atom);
+		auto bindingPowers = infixBindingPower(op);
 		if (bindingPowers.first < minBindingPower) {
 			break;
 		}
-		Expression rhs;
-		rhs = parseExpression(bindingPowers.second);
+		next();
+		
+		Expression rhs = parseExpression(bindingPowers.second);
 		
 		std::vector<Expression> operation =  { lhs, rhs };
-		Expression expr = { 0, std::make_pair(op.Atom, operation) };
-		return expr;
+		lhs = { 0, std::make_pair(op, operation) };
 	}
 	return lhs;
 }
@@ -85,7 +84,7 @@ std::pair<float, float> Lexer::infixBindingPower(char op) {
 	} else if(op == '*' || op == '/') {
 		return std::make_pair(2.0f, 2.1f);
 	} else {
-		std::cout << "Fatal error! Encountered undefined operator! Got: " << op << '\n';
+		std::cout << "Fatal error! Encountered undefined operator. Got: " << op << '\n';
 		std::abort();
 	}
 }
