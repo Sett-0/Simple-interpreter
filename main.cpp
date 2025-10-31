@@ -1,6 +1,6 @@
-#include "Lexer.h"
 #include <iostream>
 #include <string>
+#include "lexer.h"
 	
 // Nice example: "A * e ^ ((x / q) ^ 2 / 2) + 1";
 
@@ -12,7 +12,7 @@ int main() {
 		std::getline(std::cin, input);
 		if (input == "q") break;
 		
-		lexer.setInput(input);
+		lexer.tokenize(input);
 		std::cout << ">> "; lexer.parseExpression().printfTree();
 	}
 	std::cout << "Cya!\n";

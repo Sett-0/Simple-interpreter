@@ -1,9 +1,10 @@
-#include "Lexer.h"
+#include "lexer.h"
 #include <cctype>
 #include <algorithm>
 #include <iostream>
+#include <unordered_map>
 
-void Lexer::setInput(const std::string& userInput) {
+void Lexer::tokenize(const std::string& userInput) {
 	input = userInput;
 	tokens.clear();
 	
@@ -53,13 +54,11 @@ Expression Lexer::parseExpression(const float minBindingPower, unsigned int insi
 	if (token.second == Token::Atom) {
 		lhs.Atom = token.first;
 	} else if (token.first == '(') {
-		insideBrackets++;
-		lhs = parseExpression(0.0f, insideBrackets);
+		lhs = parseExpression(0.0f, insideBrackets + 1);
 		if (next().first != ')') {
 			std::cout << "Bad sequence! Didn't find \')\' after \'(\'.\n";
 			std::abort();
 		}
-		insideBrackets--;
 	} else {
 		invalidToken("Atom or \'(\'", token);
 	}
@@ -96,7 +95,7 @@ Expression Lexer::parseExpression(const float minBindingPower, unsigned int insi
 	return lhs;
 }
 
-std::pair<float, float> Lexer::infixBindingPower(char op) {
+std::pair<float, float> Lexer::infixBindingPower(char op) const {
 	switch (op) {
 	case '+':
 	case '-':
@@ -109,6 +108,8 @@ std::pair<float, float> Lexer::infixBindingPower(char op) {
 	case '^':
 		return std::make_pair(3.1f, 3.0f);
 		break;
+	case '=':
+		return std::make_pair(0.2f, 0.1f);
 	default:
 		std::cout << "Fatal error! Encountered undefined operator. Got: " << op << '\n';
 		std::abort();

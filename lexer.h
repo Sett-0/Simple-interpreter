@@ -1,46 +1,16 @@
-#ifndef _LEXER_H_ 
-#define _LEXER_H_
+#ifndef LEXER_H_ 
+#define LEXER_H_
 
 #include <string>
 #include <vector>
 #include <utility>
 #include <iostream>
+#include "expr.h"
 
 enum class Token : char {
 	Atom = 'A',
 	Op   = 'O',
 	Eof  = 'E',
-};
-
-class Expression {
-public:
-	char Atom = 0;
-	std::pair<char, std::vector<Expression>> Operation;
-	
-	void printfTree(unsigned int recDepth = 0) const {
-		bool isAtom 	 = Atom;
-		bool isOperation = Operation.first && !Operation.second.empty();
-		if (!isAtom && !isOperation) {
-			std::cout << "Error! Expression was not initialized!\n";
-			return;
-		}
-		if (isAtom && isOperation) {
-			std::cout << "Fatal error! Expression is an Atom and an Operation at the same time!\n";
-			std::cout << "(char)Atom: " << Atom << ", (int)Atom: " << static_cast<int>(Atom) << ".\n";
-			std::cout << "Operation: (" << Operation.first << ", " << Operation.second[0].Atom << Operation.second[1].Atom << ").\n";
-			std::abort();
-		}
-		if (isAtom) {
-			std::cout << Atom;
-		} else if (isOperation) {
-			std::cout << '(' << Operation.first << ' ';
-			Operation.second[0].printfTree(recDepth + 1);
-			std::cout << ' ';
-			Operation.second[1].printfTree(recDepth + 1);
-			std::cout << ')';
-		}
-		if (!recDepth) std::cout << '\n';
-	}
 };
 
 class Lexer {
@@ -49,13 +19,13 @@ private:
 	std::vector<std::pair<char, Token>> tokens;
 	
 public:
-	void setInput(const std::string& userInput);
+	void tokenize(const std::string& userInput);
 	void printfTokens() const;
 	std::pair<char, Token> next();
 	std::pair<char, Token> peek();
 	void invalidToken(const std::string &expectedToken, const std::pair<char, Token> &token) const;
 	Expression parseExpression(const float minBidingPower = 0.0f, unsigned int insideBrackets = 0);
-	std::pair<float, float> infixBindingPower(char op);
+	std::pair<float, float> infixBindingPower(char op) const;
 };
 
-#endif
+#endif // LEXER_H_
