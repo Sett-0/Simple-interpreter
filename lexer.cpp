@@ -39,25 +39,40 @@ std::pair<char, Token> Lexer::peek() {
 }
 
 void Lexer::invalidToken(const std::string &expectedToken, const std::pair<char, Token> &token) const {
-		std::cout << "Bad token! Expected Token::" << expectedToken << ", but got (" << token.first << ", " << static_cast<char>(token.second) << ").\n";
+		std::cout << "Bad token! Expected Token::" << expectedToken << ", but got { " << token.first << ", " << static_cast<char>(token.second) << " }.\n";
 		std::abort();
 }
 
-Expression Lexer::parseExpression(const float minBindingPower) {
+Expression Lexer::parseExpression(const float minBindingPower, unsigned int insideBrackets) {
 	// Using Pratt Parsing algorithm 
 	Expression lhs;
 	std::pair<char, Token> token = next();
 	if (token.second == Token::Atom) {
 		lhs.Atom = token.first;
+	} else if (token.first == '(') {
+		insideBrackets++;
+		lhs = parseExpression(0.0f, insideBrackets);
+		if (next().first != ')') {
+			std::cout << "Bad sequence! Didn't find \')\' after \'(\'.\n";
+			std::abort();
+		}
+		insideBrackets--;
 	} else {
-		invalidToken("Atom", token);
+		invalidToken("Atom or \'(\'", token);
 	}
 	
 	while(true) {
 		char op;
 		token = peek();
-		if (token.second == Token::Eof) {
-			return lhs;
+		if (token.first == ')') {
+			if (insideBrackets) {
+				break;
+			} else {
+				std::cout << "Bad sequence! Didn't find \'(\' before \')\'.\n";
+				std::abort();
+			}
+		} else if (token.second == Token::Eof) {
+			break;
 		} else if (token.second == Token::Op) {
 			op = token.first;
 		} else {
@@ -70,7 +85,7 @@ Expression Lexer::parseExpression(const float minBindingPower) {
 		}
 		next();
 		
-		Expression rhs = parseExpression(bindingPowers.second);
+		Expression rhs = parseExpression(bindingPowers.second, insideBrackets);
 		
 		std::vector<Expression> operation =  { lhs, rhs };
 		lhs = { 0, std::make_pair(op, operation) };

@@ -3,7 +3,7 @@
 #include <string>
 
 int main() {
-	std::string s = "a + b * 4 - 9 * c"; 
+	std::string s = "a + b * 4 + a"; 
 	std::cout << s << '\n' << '\n';
 	Lexer lexer(s);
 	
@@ -11,7 +11,6 @@ int main() {
 	std::cout << '\n';
 	
 	Expression expr = lexer.parseExpression();
-	expr.printfTree();
 	expr.printfTree();
 	return 0;
 }	

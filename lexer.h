@@ -17,11 +17,9 @@ public:
 	char Atom = 0;
 	std::pair<char, std::vector<Expression>> Operation;
 	
-	void printfTree() const {
+	void printfTree(unsigned int recDepth = 0) const {
 		bool isAtom 	 = Atom;
 		bool isOperation = Operation.first && !Operation.second.empty();
-		bool isEof		 = Atom == static_cast<char>(Token::Eof);
-		//std::cout << "Atom: " << (int)Atom << ", isEof: " << isEof << '\n';
 		if (!isAtom && !isOperation) {
 			std::cout << "Error! Expression was not initialized!\n";
 			return;
@@ -32,17 +30,16 @@ public:
 			std::cout << "Operation: (" << Operation.first << ", " << Operation.second[0].Atom << Operation.second[1].Atom << ").\n";
 			std::abort();
 		}
-		if (isAtom && !isEof) {
+		if (isAtom) {
 			std::cout << Atom;
 		} else if (isOperation) {
 			std::cout << '(' << Operation.first << ' ';
-			Operation.second[0].printfTree();
+			Operation.second[0].printfTree(recDepth + 1);
 			std::cout << ' ';
-			Operation.second[1].printfTree();
+			Operation.second[1].printfTree(recDepth + 1);
 			std::cout << ')';
-		} else if (isEof) {
-			std::cout << '\n' << '\n' << '\n';
 		}
+		if (!recDepth) std::cout << '\n';
 	}
 };
 
@@ -56,7 +53,7 @@ public:
 	std::pair<char, Token> next();
 	std::pair<char, Token> peek();
 	void invalidToken(const std::string &expectedToken, const std::pair<char, Token> &token) const;
-	Expression parseExpression(const float minBidingPower = 0.0f);
+	Expression parseExpression(const float minBidingPower = 0.0f, unsigned int insideBrackets = 0);
 	std::pair<float, float> infixBindingPower(char op);
 };
 
