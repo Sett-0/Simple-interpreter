@@ -15,7 +15,7 @@ void Lexer::tokenize(const std::string& userInput) {
 	Token token;
 	for (int i = 0; i < input.length(); ++i) {
 		char c = input[i];
-		if (c >= '0' && c <= '9' || c >= 'a' && c < 'z') {
+		if (c >= '0' && c <= '9' || c >= 'a' && c <= 'z') {
 			token = Token::Atom;
 		} else {
 			token = Token::Op;
@@ -52,7 +52,7 @@ Expression Lexer::parseExpression(const float minBindingPower, unsigned int insi
 	Expression lhs;
 	std::pair<char, Token> token = next();
 	if (token.second == Token::Atom) {
-		lhs.Atom = token.first;
+		lhs.atom = token.first;
 	} else if (token.first == '(') {
 		lhs = parseExpression(0.0f, insideBrackets + 1);
 		if (next().first != ')') {
@@ -89,7 +89,7 @@ Expression Lexer::parseExpression(const float minBindingPower, unsigned int insi
 		
 		Expression rhs = parseExpression(bindingPowers.second, insideBrackets);
 		
-		std::vector<Expression> operation =  { lhs, rhs };
+		std::vector<Expression> operation = { lhs, rhs };
 		lhs = { 0, std::make_pair(op, operation) };
 	}
 	return lhs;

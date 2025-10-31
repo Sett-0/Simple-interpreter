@@ -3,14 +3,17 @@
 
 #include <utility>
 #include <vector>
+#include <unordered_map>
 
 class Expression {
 public:
-	char Atom = 0;
-	std::pair<char, std::vector<Expression>> Operation;
-	
+	char atom = 0;
+	std::pair<char, std::vector<Expression>> operation;
+
+	bool isAtom() const;
+	bool isOperation() const;
 	void printfTree(unsigned int recDepth = 0) const;
-	double eval();
+	std::string eval();
 };
 
 #endif // EXPR_H_
