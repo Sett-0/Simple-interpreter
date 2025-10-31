@@ -45,10 +45,11 @@ public:
 
 class Lexer {
 private:
+	std::string input;
 	std::vector<std::pair<char, Token>> tokens;
 	
 public:
-	Lexer(std::string& input);
+	void setInput(const std::string& userInput);
 	void printfTokens() const;
 	std::pair<char, Token> next();
 	std::pair<char, Token> peek();

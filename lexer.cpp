@@ -3,7 +3,10 @@
 #include <algorithm>
 #include <iostream>
 
-Lexer::Lexer(std::string &input) {
+void Lexer::setInput(const std::string& userInput) {
+	input = userInput;
+	tokens.clear();
+	
 	// Remove whitespaces, lowercase
 	input.erase(std::remove_if(input.begin(), input.end(), [](unsigned char c) { return std::isspace(c); }), input.end());
 	std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c) { return std::tolower(c); });
@@ -94,11 +97,19 @@ Expression Lexer::parseExpression(const float minBindingPower, unsigned int insi
 }
 
 std::pair<float, float> Lexer::infixBindingPower(char op) {
-	if (op == '+' || op == '-') {
+	switch (op) {
+	case '+':
+	case '-':
 		return std::make_pair(1.0f, 1.1f);
-	} else if(op == '*' || op == '/') {
+		break;
+	case '*':
+	case '/':
 		return std::make_pair(2.0f, 2.1f);
-	} else {
+		break;
+	case '^':
+		return std::make_pair(3.1f, 3.0f);
+		break;
+	default:
 		std::cout << "Fatal error! Encountered undefined operator. Got: " << op << '\n';
 		std::abort();
 	}
