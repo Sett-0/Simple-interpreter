@@ -80,6 +80,7 @@ std::string Expression::eval() {
 		case '-': return std::to_string(lhs_v - rhs_v);
 		case '*': return std::to_string(lhs_v * rhs_v);
 		case '/': return std::to_string(lhs_v / rhs_v);
+		case '%': return std::to_string(std::fmod(lhs_v, rhs_v));
 		case '^': return std::to_string(std::pow(lhs_v, rhs_v));
 		default:
 			std::cout << "Fatal error! Encountered undefined operator. Got: " << op << '\n';

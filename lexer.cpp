@@ -115,6 +115,7 @@ std::pair<float, float> Lexer::infixBindingPower(char op) const {
 		break;
 	case '*':
 	case '/':
+	case '%':
 		return std::make_pair(2.0f, 2.1f);
 		break;
 	case '^':
