@@ -4,10 +4,11 @@
 #include <utility>
 #include <vector>
 #include <unordered_map>
+#include <string>
 
 class Expression {
 public:
-	char atom = 0;
+	std::string atom = "";
 	std::pair<char, std::vector<Expression>> operation;
 
 	bool isAtom() const;

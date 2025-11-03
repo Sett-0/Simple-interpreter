@@ -4,45 +4,69 @@
 #include <iostream>
 #include <unordered_map>
 
-void Lexer::tokenize(const std::string& userInput) {
+bool Lexer::isNumber(const char c) {
+	return (c >= '0') && (c <= '9') || (c == '.');
+}
+
+bool Lexer::isLetter(const char c) {
+	return (c >= 'A') && (c <= 'Z') || (c >= 'a') && (c <= 'z') || (c == '_');
+}
+
+bool Lexer::tokenize(const std::string& userInput) {
 	input = userInput;
 	tokens.clear();
 	
 	// Remove whitespaces, lowercase
 	input.erase(std::remove_if(input.begin(), input.end(), [](unsigned char c) { return std::isspace(c); }), input.end());
-	std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c) { return std::tolower(c); });
+	//std::transform(input.begin(), input.end(), input.begin(), [](unsigned char c) { return std::tolower(c); });
 	
-	Token token;
+	char c;
+	std::string token;
 	for (int i = 0; i < input.length(); ++i) {
-		char c = input[i];
-		if (c >= '0' && c <= '9' || c >= 'a' && c <= 'z') {
-			token = Token::Atom;
-		} else {
-			token = Token::Op;
+		c = input[i];
+		if (isNumber(c) || isLetter(c)) {
+			token += c;
+			c = input[i+1];
+			if (isLetter(c)) {
+				if (isNumber(token[0])) {
+					std::cout << "Variable names cannot start with a number!\n";
+					return false;
+				
+				}
+			}
+			if (!isNumber(c) && !isLetter(c)) {
+				tokens.push_back(std::make_pair(token, Token::Atom));
+				token = "";
+			}
 		}
-		tokens.push_back(std::make_pair(c, token)); 
+		else {
+			token += c;
+			tokens.push_back(std::make_pair(token, Token::Op));
+			token = "";
+		}
 	}
-	tokens.push_back(std::pair<char, Token>('\0', Token::Eof)); 
+	tokens.push_back(std::make_pair("", Token::Eof)); 
 	std::reverse(tokens.begin(), tokens.end());
+	return true;
 }
 
 void Lexer::printfTokens() const {
 	for (auto token = std::rbegin(tokens); token != std::rend(tokens); token++) {
-		std::cout << '(' << static_cast<char>((*token).first) << ", " << static_cast<char>((*token).second) << ")\n";
+		std::cout << '(' << (*token).first << ", " << static_cast<char>((*token).second) << ")\n";
 	}
 }
 
-std::pair<char, Token> Lexer::next() {
+std::pair<std::string, Token> Lexer::next() {
 	auto ret = tokens.back();
 	tokens.pop_back();
 	return ret;
 }
 
-std::pair<char, Token> Lexer::peek() {
+std::pair<std::string, Token> Lexer::peek() {
 	return tokens.back();
 }
 
-void Lexer::invalidToken(const std::string &expectedToken, const std::pair<char, Token> &token) const {
+void Lexer::invalidToken(const std::string &expectedToken, const std::pair<std::string, Token> &token) const {
 		std::cout << "Bad token! Expected Token::" << expectedToken << ", but got { " << token.first << ", " << static_cast<char>(token.second) << " }.\n";
 		std::abort();
 }
@@ -50,46 +74,61 @@ void Lexer::invalidToken(const std::string &expectedToken, const std::pair<char,
 Expression Lexer::parseExpression(const float minBindingPower, unsigned int insideBrackets) {
 	// Using Pratt Parsing algorithm 
 	Expression lhs;
-	std::pair<char, Token> token = next();
-	if (token.second == Token::Atom) {
+	std::pair<std::string, Token> token = next();
+	switch (token.second) {
+	case Token::Atom:
 		lhs.atom = token.first;
-	} 
-	else if (token.first == '(') {
-		lhs = parseExpression(0.0f, insideBrackets + 1);
-		if (next().first != ')') {
-			std::cout << "Bad sequence! Didn't find \')\' after \'(\'.\n";
-			std::abort();
+		break;
+	case Token::Op:
+		switch (token.first[0]) {
+		case '(':
+			lhs = parseExpression(0.0f, insideBrackets + 1);
+			if (next().first[0] != ')') {
+				std::cout << "Bad sequence! Didn't find \')\' after \'(\'.\n";
+				std::abort();
+			}
+			break;
+		case '-': {
+			lhs.atom = "0.0";
+			Expression rhs = parseExpression(minBindingPower, insideBrackets);
+			std::vector<Expression> atoms = { lhs, rhs };
+			auto operation = std::make_pair('-', atoms);
+			lhs = { "", operation };
+			break;
 		}
-	}
-	else if (token.first == '-') {
-		lhs.atom = '0';
-		Expression rhs = parseExpression(minBindingPower, insideBrackets);
-		std::vector<Expression> atoms = { lhs, rhs };
-		auto operation = std::make_pair('-', atoms);
-		lhs = { 0, operation };
-	}
-	else if (token.first == '+') {
-		lhs = parseExpression(minBindingPower, insideBrackets);
-	}
-	else {
+		case '+':
+			lhs = parseExpression(minBindingPower, insideBrackets);
+			break;
+		}
+	break;
+	case Token::Eof:
+		return lhs;
+	default:
 		invalidToken("Atom, \'(\' or unary minus", token);
 	}
 	
 	while(true) {
 		char op;
 		token = peek();
-		if (token.first == ')') {
-			if (insideBrackets) {
+		switch (token.second) {
+		case Token::Op:
+			switch (token.first[0]) {
+			case ')':
+				if (insideBrackets) {
+					goto exit_loop;
+				} else {
+					std::cout << "Bad sequence! Didn't find \'(\' before \')\'.\n";
+					std::abort();
+				}
 				break;
-			} else {
-				std::cout << "Bad sequence! Didn't find \'(\' before \')\'.\n";
-				std::abort();
+			default:
+				op = token.first[0];
 			}
-		} else if (token.second == Token::Eof) {
+		break;
+		case Token::Eof:
+			goto exit_loop;
 			break;
-		} else if (token.second == Token::Op) {
-			op = token.first;
-		} else {
+		default:
 			invalidToken("Op", token);
 		}
 		
@@ -102,8 +141,9 @@ Expression Lexer::parseExpression(const float minBindingPower, unsigned int insi
 		Expression rhs = parseExpression(bindingPowers.second, insideBrackets);
 		std::vector<Expression> atoms = { lhs, rhs };
 		auto operation = std::make_pair(op, atoms);
-		lhs = { 0, operation };
+		lhs = { "", operation };
 	}
+	exit_loop:
 	return lhs;
 }
 
@@ -124,7 +164,7 @@ std::pair<float, float> Lexer::infixBindingPower(char op) const {
 	case '=':
 		return std::make_pair(0.2f, 0.1f);
 	default:
-		std::cout << "Fatal error! Encountered undefined operator. Got: " << op << '\n';
+		std::cout << "Fatal error! Encountered undefined operator. Got: \'" << op << "\'.\n";
 		std::abort();
 	}
 }

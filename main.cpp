@@ -3,9 +3,8 @@
 #include <unordered_map>
 #include "lexer.h"
 
-std::unordered_map<char, double> vars;
+std::unordered_map<std::string, double> vars;
 
-// Nice example: "A * e ^ ((x / q) ^ 2 / 2) + 1";
 int main() {
 	std::string input  = "";
 	std::string result = "";
@@ -15,8 +14,7 @@ int main() {
 		std::cout << ">> ";
 		std::getline(std::cin, input);
 		if (input == "quit" || input =="exit") break;
-		
-		lexer.tokenize(input);
+		if (!lexer.tokenize(input)) continue;
 		result = lexer.parseExpression().eval();
 		if (!result.empty()) 
 			std::cout << ">> " << result << "\n";

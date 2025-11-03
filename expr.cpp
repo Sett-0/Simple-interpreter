@@ -2,10 +2,10 @@
 #include <cmath>
 #include "expr.h"
 
-extern std::unordered_map<char, double> vars;
+extern std::unordered_map<std::string, double> vars;
 
 bool Expression::isAtom() const { 
-	return static_cast<bool>(atom); 
+	return !atom.empty(); 
 }
 bool Expression::isOperation() const {
 	return static_cast<bool>(operation.first) && !operation.second.empty(); 
@@ -16,12 +16,12 @@ void Expression::printfTree(unsigned int recDepth) const {
 	bool is_operation = isOperation();
 	
 	if (!is_atom && !is_operation) {
-		std::cout << "Error! Expression was not initialized!\n";
+		std::cout << "";
 		return;
 	}
 	if (is_atom && is_operation) {
 		std::cout << "Fatal error! Expression is an Atom and an Operation at the same time!\n";
-		std::cout << "(char)Atom: " << atom << ", (int)Atom: " << static_cast<int>(atom) << ".\n";
+		std::cout << "Atom: " << atom << ".\n";
 		std::cout << "Operation: (" << operation.first << ", " << operation.second[0].atom << operation.second[1].atom << ").\n";
 		std::abort();
 	}
@@ -43,18 +43,17 @@ std::string Expression::eval() {
 	bool is_operation = isOperation();
 	
 	if (!is_atom && !is_operation) {
-		std::cout << "Error! Expression was not initialized!\n";
-		std::abort();
+		return "";
 	}
 	if (is_atom && is_operation) {
 		std::cout << "Fatal error! Expression is an Atom and an Operation at the same time!\n";
-		std::cout << "(char)Atom: " << atom << ", (int)Atom: " << static_cast<int>(atom) << ".\n";
+		std::cout << "Atom: " << atom << ".\n";
 		std::cout << "Operation: (" << operation.first << ", " << operation.second[0].atom << operation.second[1].atom << ").\n";
 		std::abort();
 	}
 	if (is_atom) {
-		if      (atom >= '0' && atom <= '9') return std::to_string(atom - '0');
-		else if (atom >= 'a' && atom <= 'z') return std::to_string(vars[atom]);
+		if (atom[0] >= '0' && atom[0] <= '9') return atom;
+		else return std::to_string(vars[atom]);
 	} 
 	else if (is_operation) {
 		char op = operation.first;
@@ -64,7 +63,7 @@ std::string Expression::eval() {
 			if(!lhs.isAtom()) {
 				std::cout << "Cannot assign to expression here!\n";
 				std::abort();
-			} else if (lhs.atom < 'a' || lhs.atom > 'z') {
+			} else if (std::tolower(lhs.atom[0]) < 'a' || std::tolower(lhs.atom[0]) > 'z') {
 				std::cout << "Invalid sytnax!\n";
 				std::abort();
 			} else {
@@ -83,7 +82,7 @@ std::string Expression::eval() {
 		case '%': return std::to_string(std::fmod(lhs_v, rhs_v));
 		case '^': return std::to_string(std::pow(lhs_v, rhs_v));
 		default:
-			std::cout << "Fatal error! Encountered undefined operator. Got: " << op << '\n';
+			std::cout << "Fatal error! Encountered undefined operator. Got: \'" << op << "\'.\n";
 			std::abort();
 		}
 	}

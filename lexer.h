@@ -16,14 +16,16 @@ enum class Token : char {
 class Lexer {
 private:
 	std::string input;
-	std::vector<std::pair<char, Token>> tokens;
+	std::vector<std::pair<std::string, Token>> tokens;
 	
 public:
-	void tokenize(const std::string& userInput);
+	bool isNumber(const char c);
+	bool isLetter(const char c);
+	bool tokenize(const std::string& userInput);
 	void printfTokens() const;
-	std::pair<char, Token> next();
-	std::pair<char, Token> peek();
-	void invalidToken(const std::string &expectedToken, const std::pair<char, Token> &token) const;
+	std::pair<std::string, Token> next();
+	std::pair<std::string, Token> peek();
+	void invalidToken(const std::string &expectedToken, const std::pair<std::string, Token> &token) const;
 	Expression parseExpression(const float minBidingPower = 0.0f, unsigned int insideBrackets = 0);
 	std::pair<float, float> infixBindingPower(char op) const;
 };
