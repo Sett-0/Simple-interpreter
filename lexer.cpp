@@ -99,12 +99,12 @@ Expression Lexer::parseExpression(const float minBindingPower, unsigned int insi
 		case '+':
 			lhs = parseExpression(minBindingPower, insideBrackets);
 			break;
+		default:
+			invalidToken("Atom, \'(\' or unary minus", token);
 		}
 	break;
 	case Token::Eof:
 		return lhs;
-	default:
-		invalidToken("Atom, \'(\' or unary minus", token);
 	}
 	
 	while(true) {
