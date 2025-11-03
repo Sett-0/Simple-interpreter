@@ -14,7 +14,7 @@ int main() {
 	while (true) {
 		std::cout << ">> ";
 		std::getline(std::cin, input);
-		if (input == "quit") break;
+		if (input == "quit" || input =="exit") break;
 		
 		lexer.tokenize(input);
 		result = lexer.parseExpression().eval();

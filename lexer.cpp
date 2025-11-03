@@ -53,14 +53,26 @@ Expression Lexer::parseExpression(const float minBindingPower, unsigned int insi
 	std::pair<char, Token> token = next();
 	if (token.second == Token::Atom) {
 		lhs.atom = token.first;
-	} else if (token.first == '(') {
+	} 
+	else if (token.first == '(') {
 		lhs = parseExpression(0.0f, insideBrackets + 1);
 		if (next().first != ')') {
 			std::cout << "Bad sequence! Didn't find \')\' after \'(\'.\n";
 			std::abort();
 		}
-	} else {
-		invalidToken("Atom or \'(\'", token);
+	}
+	else if (token.first == '-') {
+		lhs.atom = '0';
+		Expression rhs = parseExpression(minBindingPower, insideBrackets);
+		std::vector<Expression> atoms = { lhs, rhs };
+		auto operation = std::make_pair('-', atoms);
+		lhs = { 0, operation };
+	}
+	else if (token.first == '+') {
+		lhs = parseExpression(minBindingPower, insideBrackets);
+	}
+	else {
+		invalidToken("Atom, \'(\' or unary minus", token);
 	}
 	
 	while(true) {
@@ -88,9 +100,9 @@ Expression Lexer::parseExpression(const float minBindingPower, unsigned int insi
 		next();
 		
 		Expression rhs = parseExpression(bindingPowers.second, insideBrackets);
-		
-		std::vector<Expression> operation = { lhs, rhs };
-		lhs = { 0, std::make_pair(op, operation) };
+		std::vector<Expression> atoms = { lhs, rhs };
+		auto operation = std::make_pair(op, atoms);
+		lhs = { 0, operation };
 	}
 	return lhs;
 }
